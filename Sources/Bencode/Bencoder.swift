@@ -32,11 +32,11 @@ public struct Bencoder {
 
 extension Bencoder {
 
-    fileprivate func parse(_ data: Data) throws -> (bencode: Bencode, index: Int) {
-        return try parse(Array(data), from: 0)
+    private func parse(_ data: Data) throws -> (bencode: Bencode, index: Int) {
+        return try parse(data, from: 0)
     }
 
-    fileprivate func parse(_ data: [UInt8], from index: Int) throws -> (
+    fileprivate func parse(_ data: Data, from index: Int) throws -> (
         bencode: Bencode, index: Int
     ) {
         guard data.endIndex >= index + 1 else {
@@ -54,7 +54,7 @@ extension Bencoder {
         }
     }
 
-    fileprivate func parseString(data: [UInt8], index: Int) throws -> (bencode: Bencode, index: Int)
+    private func parseString(data: Data, index: Int) throws -> (bencode: Bencode, index: Int)
     {
         guard let sep = data[index...].firstIndex(of: colon) else {
             throw BencodeError.tokenNotFound(colon)
@@ -69,7 +69,7 @@ extension Bencoder {
         return (.string(Data(data[start..<end])), end)
     }
 
-    fileprivate func parseInt(data: [UInt8], index: Int) throws -> (bencode: Bencode, index: Int) {
+    private func parseInt(data: Data, index: Int) throws -> (bencode: Bencode, index: Int) {
         guard let end = data[index...].firstIndex(of: e) else {
             throw BencodeError.tokenNotFound(e)
         }
@@ -81,7 +81,7 @@ extension Bencoder {
         return (.int(int), end + 1)
     }
 
-    fileprivate func parseList(data: [UInt8], index: Int) throws -> (bencode: Bencode, index: Int) {
+    private func parseList(data: Data, index: Int) throws -> (bencode: Bencode, index: Int) {
         var l: [Bencode] = []
         var currentIndex: Int = index
 
@@ -93,7 +93,7 @@ extension Bencoder {
         return (.list(l), currentIndex + 1)
     }
 
-    fileprivate func parseDict(data: [UInt8], index: Int) throws -> (bencode: Bencode, index: Int) {
+    private func parseDict(data: Data, index: Int) throws -> (bencode: Bencode, index: Int) {
         var d: [Data: Bencode] = [:]
         var currentIndex: Int = index
 
