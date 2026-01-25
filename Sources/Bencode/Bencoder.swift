@@ -26,6 +26,25 @@ public struct Bencoder {
         }.value
         return try decode(data: data)
     }
+    
+    public func encoded(bencode: Bencode) -> Data {
+        switch bencode {
+        case .string(let d): return Data("\(d.count):".utf8) + d
+        case .int(let i): return Data("i\(i)e".utf8)
+        case .list(let l):
+            let body = l.map { encoded(bencode: $0) }
+                .reduce(Data(), +)
+            return Data("l".utf8) + body + Data("e".utf8)
+        case .dict(let d):
+            let body = d
+                .sorted { $0.key.lexicographicallyPrecedes($1.key) }
+                .map { (key, value) in
+                    key.encoded! + value.encoded!
+                }
+                .reduce(Data(), +)
+            return Data("d".utf8) + body + Data("e".utf8)
+        }
+    }
 }
 
 // MARK: - Private decoding helpers
