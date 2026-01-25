@@ -22,8 +22,10 @@ public enum Bencode: Equatable {
     var encoded: Data? {
         let bencode = Bencoder().encoded(bencode: self)
         return bencode
+    }
+    
     // access Bencode dict by String key
-
+    subscript(key: String) -> Bencode? {
         guard case .dict(let d) = self,
               let keyData = key.data(using: .utf8) else { return nil }
         return d[keyData]
@@ -32,8 +34,6 @@ public enum Bencode: Equatable {
     // access Bencode dict by Data key - this isn't very useful for eg torrents
     // but dict keys being UInt8 value stream is technically in Bencode spec
     subscript(key: Data) -> Bencode? {
-        guard case .dict(let d) = self else { return nil }
-        return d[key]
         guard case .dict(let d) = self else { return nil }
         return d[key]
     }
