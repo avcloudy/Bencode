@@ -10,13 +10,26 @@ public enum Bencode: Equatable {
         let bencode = try Bencoder().decode(bencodedString: string)
         self = bencode
     }
+    
+    // access Bencode list by Int index
+    subscript(index: Int) -> Bencode? {
+        guard case .list(let l) = self,
+              index >= 0,
+              index < l.count else { return nil }
+        return l[index]
+    }
 
+    // access Bencode dict by String key
     subscript(key: String) -> Bencode? {
-        if case .dict(let dict) = self,
-            let keyData = key.data(using: .utf8)
-        {
-            return dict[keyData]
-        }
-        return nil
+        guard case .dict(let d) = self,
+              let keyData = key.data(using: .utf8) else { return nil }
+        return d[keyData]
+    }
+    
+    // access Bencode dict by Data key - this isn't very useful for eg torrents
+    // but dict keys being UInt8 value stream is technically in Bencode spec
+    subscript(key: Data) -> Bencode? {
+        guard case .dict(let d) = self else { return nil }
+        return d[key]
     }
 }

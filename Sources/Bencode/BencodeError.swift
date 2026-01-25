@@ -1,5 +1,4 @@
 public enum BencodeError: Error {
-    //    case invalidBencodedString
     case invalidString
     case cantReadFile
     case indexOutOfBounds
