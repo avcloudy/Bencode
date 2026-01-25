@@ -4,6 +4,7 @@ import Testing
 @testable import Bencode
 
 struct BencodeTests {
+    // MARK: Decode tests
     struct BencodeDecodeTestsFromString {
         @Test func decodeStringTrivial() throws {
             let testBencodedString = "1:a"
@@ -46,6 +47,12 @@ struct BencodeTests {
             let decodedList = try Bencode(bencodedString: testBencodedString)
             #expect(decodedList == .list([.string("This is a simple test!".data(using: .utf8)!)]))
         }
+        
+        @Test func decodeListTrivialStringAccessorIndex() throws {
+            let testBencodedString = "l22:This is a simple test!e"
+            let decodedList = try Bencode(bencodedString: testBencodedString)
+            #expect(decodedList[0] == .string("This is a simple test!".data(using: .utf8)!))
+        }
 
         @Test func decodeListTrivialInt() throws {
             let testBencodedString = "li42ee"
@@ -75,6 +82,19 @@ struct BencodeTests {
             let key = "Key".data(using: .utf8)!
             let value = Bencode.string("Value".data(using: .utf8)!)
             #expect(decodedDict == .dict([key: value]))
+        }
+        
+        @Test func decodeTrivialDictAccessorString() throws {
+            let testBencodedString = "d3:Key5:Valuee"
+            let decodedDict = try Bencode(bencodedString: testBencodedString)
+            #expect(decodedDict["Key"] == .string("Value".data(using: .utf8)!))
+        }
+        
+        @Test func decodeTrivialDictAccessorData() throws {
+            let testBencodedString = "d3:Key5:Valuee"
+            let decodedDict = try Bencode(bencodedString: testBencodedString)
+            let key = "Key".data(using: .utf8)!
+            #expect(decodedDict[key] == .string("Value".data(using: .utf8)!))
         }
 
         @Test func decodeTrivialDictInt() throws {
@@ -119,5 +139,9 @@ struct BencodeTests {
             #expect(decodedDict["list"] == bencodedRecursiveDict["list"])
             #expect(decodedDict["string"] == bencodedRecursiveDict["string"])
         }
+    }
+    // MARK: Encode Tests
+    struct BencodeEncodeFromBencodeObjects {
+        
     }
 }
