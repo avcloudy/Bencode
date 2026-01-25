@@ -142,6 +142,34 @@ struct BencodeTests {
     }
     // MARK: Encode Tests
     struct BencodeEncodeFromBencodeObjects {
+        @Test func encodeString() throws {
+            let testBencodedString = Bencode.string("This is a simple test!".data(using: .utf8)!)
+            #expect(testBencodedString.encoded == Data("22:This is a simple test!".utf8))
+        }
         
+        @Test func encodeInt() throws {
+            let testBencodedString = Bencode.int(42)
+            #expect(testBencodedString.encoded == Data("i42e".utf8))
+        }
+        
+        @Test func encodeList() throws {
+            let one = Bencode.string("one".data(using: .utf8)!)
+            let two = Bencode.string("two".data(using: .utf8)!)
+            let three = Bencode.string("three".data(using: .utf8)!)
+            let testBencodedList = Bencode.list([one, two, three])
+            #expect(testBencodedList.encoded == Data("l3:one3:two5:threee".utf8))
+        }
+        
+        @Test func encodeDict() throws {
+            let key = "key".data(using: .utf8)!
+            let value = Bencode.string("value".data(using: .utf8)!)
+            let aaaron = "aaaron".data(using: .utf8)!
+            let done = Bencode.string("fucked up".data(using: .utf8)!)
+            let testBencodedDict = Bencode.dict([key: value, aaaron: done])
+            print(String(data: testBencodedDict.encoded!, encoding: .utf8)!)
+            #expect(testBencodedDict.encoded == Data("d6:aaaron9:fucked up3:key5:valuee".utf8))
+        }
+        
+        // TODO: add check for construction from bencode string matches string
     }
 }

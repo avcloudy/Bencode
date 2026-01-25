@@ -18,9 +18,12 @@ public enum Bencode: Equatable {
               index < l.count else { return nil }
         return l[index]
     }
-
+    
+    var encoded: Data? {
+        let bencode = Bencoder().encoded(bencode: self)
+        return bencode
     // access Bencode dict by String key
-    subscript(key: String) -> Bencode? {
+
         guard case .dict(let d) = self,
               let keyData = key.data(using: .utf8) else { return nil }
         return d[keyData]
@@ -31,5 +34,13 @@ public enum Bencode: Equatable {
     subscript(key: Data) -> Bencode? {
         guard case .dict(let d) = self else { return nil }
         return d[key]
+        guard case .dict(let d) = self else { return nil }
+        return d[key]
+    }
+}
+
+extension Data {
+    var encoded: Data? {
+        return Data("\(self.count):".utf8) + self
     }
 }
