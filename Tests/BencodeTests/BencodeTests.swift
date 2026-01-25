@@ -4,6 +4,7 @@ import Testing
 @testable import Bencode
 
 struct BencodeTests {
+    // MARK: Decode tests
     struct BencodeDecodeTestsFromString {
         @Test func decodeStringTrivial() throws {
             let testBencodedString = "1:a"
@@ -119,5 +120,9 @@ struct BencodeTests {
             #expect(decodedDict["list"] == bencodedRecursiveDict["list"])
             #expect(decodedDict["string"] == bencodedRecursiveDict["string"])
         }
+    }
+    // MARK: Encode Tests
+    struct BencodeEncodeFromBencodeObjects {
+        
     }
 }
