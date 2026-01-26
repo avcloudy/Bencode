@@ -222,7 +222,7 @@ struct BencodeTests {
                 ]
             )
             #expect(urlList == urlListExpected)
-            let hash = info.hashedString
+            let hash = info.hexHashed
             let hashExpected = "c6ee205099093bbe2dffa4e1b2794b7dae0e6046"
             #expect(hash == hashExpected)
         }
