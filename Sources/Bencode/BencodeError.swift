@@ -6,4 +6,5 @@ public enum BencodeError: Error {
     case tokenNotFound(_: UInt8)
     case invalidNumber
     case badKey
+    case notHashable
 }

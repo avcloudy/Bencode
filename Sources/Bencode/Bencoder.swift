@@ -9,6 +9,14 @@ public struct Bencoder {
     private let e = Character("e").asciiValue!
     private let colon = Character(":").asciiValue!
 
+    /// Decode Bencode from a String
+    /// - Parameter string: String fitting the Bencode specification:
+    ///    string: "This is a string!" <-> "17.This is a string!"
+    ///    int: 42 <-> "i42e"
+    ///    list: ["one", "two", "three"] <-> "l3:one3:two5:threee"
+    ///    dict: ["key": "value"] <-> "d3:key5:valuee"
+    /// - Returns: Bencode enum object
+    /// Preferred usage is through Bencode initialiser, so instead of Bencoder.decode(bencodedString:) use Bencode(bencodedString:)
     public func decode(bencodedString string: String) throws -> Bencode {
         guard let data = string.data(using: .utf8) else {
             throw BencodeError.invalidString
@@ -16,17 +24,29 @@ public struct Bencoder {
         return try decode(data: data)
     }
 
+    /// As for decode(bencodedString:) but with Data instead of String
+    ///  - Parameter data: Data fitting the Bencode specification
+    ///  - Returns: Bencode enum object
+    ///  Use Bencode(data:) as for decode(bencodedString:)
     public func decode(data: Data) throws -> Bencode {
         return try parse(data).bencode
     }
 
+    /// Decode Bencode from a file
+    /// - Parameter url: path to .torrent file.
+    /// - Returns: Bencode enum object
+    /// Use Bencode(file:) as for decode(bencodedString)
     public func decode(file url: URL) async throws -> Bencode {
         let data = try await Task.detached(priority: .userInitiated) {
             try Data(contentsOf: url)
         }.value
         return try decode(data: data)
     }
-    
+
+    /// Encode a Bencode object into a stream of bytes conforming to Bencode specification
+    /// - Parameter bencode: Any Bencode enum
+    /// - Returns: Data object with encoded Bencode bytes
+    /// Access through bencode.encoded
     public func encoded(bencode: Bencode) -> Data {
         switch bencode {
         case .string(let d): return Data("\(d.count):".utf8) + d
@@ -36,7 +56,8 @@ public struct Bencoder {
                 .reduce(Data(), +)
             return Data("l".utf8) + body + Data("e".utf8)
         case .dict(let d):
-            let body = d
+            let body =
+                d
                 .sorted { $0.key.lexicographicallyPrecedes($1.key) }
                 .map { (key, value) in
                     key.encoded! + value.encoded!
@@ -73,8 +94,7 @@ extension Bencoder {
         }
     }
 
-    private func parseString(data: Data, index: Int) throws -> (bencode: Bencode, index: Int)
-    {
+    private func parseString(data: Data, index: Int) throws -> (bencode: Bencode, index: Int) {
         guard let sep = data[index...].firstIndex(of: colon) else {
             throw BencodeError.tokenNotFound(colon)
         }
@@ -128,4 +148,7 @@ extension Bencoder {
         return (.dict(d), currentIndex + 1)
     }
 
+    // TODO: Think about implementing parsers as black box iterator
+    // Pass in Data object and call nextByte in loop. Wrapper contains counter and signals
+    // when object is exhausted.
 }
