@@ -96,9 +96,24 @@ let dict = Bencode.dict([
 ```
 
 ### Build a bencoded stream of bytes from a Bencode object:
+
 ```swift
 let bytes: Data = bencode.encoded
 ```
+
+### Type safe error handling:
+
+```swift
+do {
+    let bencodeDict = try Bencode(bencodedString: testString)
+} catch BencodeError.badKey {
+    print("That isn't a valid dictionary key.")
+} catch let error as BencodeError {
+    print("An error occurred during Bencode parsing: /(error)")
+}
+```
+
+Note, any async functions may throw errors related to async handling. Bencode(file:) is async, and you must provide a default catch case.
 
 ## Help
 

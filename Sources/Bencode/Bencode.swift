@@ -15,7 +15,7 @@ public enum Bencode: Equatable {
     ///    list: ["one", "two", "three"] <-> "l3:one3:two5:threee"
     ///    dict: ["key": "value"] <-> "d3:key5:valuee"
     /// - Returns: Bencode enum object
-    init(bencodedString string: String) throws {
+    init(bencodedString string: String) throws(BencodeError) {
         let bencode = try Bencoder.decode(bencodedString: string)
         self = bencode
     }
@@ -39,7 +39,7 @@ public enum Bencode: Equatable {
     ///    list: ["one", "two", "three"] <-> "l3:one3:two5:threee"
     ///    dict: ["key": "value"] <-> "d3:key5:valuee"
     /// - Returns: Bencode enum object
-    init(data: Data) throws {
+    init(data: Data) throws(BencodeError) {
         let bencode = try Bencoder.decode(data: data)
         self = bencode
     }

@@ -17,7 +17,7 @@ public struct Bencoder {
     ///    dict: ["key": "value"] <-> "d3:key5:valuee"
     /// - Returns: Bencode enum object
     /// Preferred usage is through Bencode initialiser, so instead of Bencoder.decode(bencodedString:) use Bencode(bencodedString:)
-    public static func decode(bencodedString string: String) throws -> Bencode {
+    public static func decode(bencodedString string: String) throws(BencodeError) -> Bencode {
         let data = Data(string.utf8)
         return try decode(data: data)
     }
@@ -26,7 +26,7 @@ public struct Bencoder {
     ///  - Parameter data: Data fitting the Bencode specification
     ///  - Returns: Bencode enum object
     ///  Use Bencode(data:) as for decode(bencodedString:)
-    public static func decode(data: Data) throws -> Bencode {
+    public static func decode(data: Data) throws(BencodeError) -> Bencode {
         return try parse(data).bencode
     }
 
@@ -70,11 +70,11 @@ public struct Bencoder {
 
 extension Bencoder {
 
-    private static func parse(_ data: Data) throws -> (bencode: Bencode, index: Int) {
+    private static func parse(_ data: Data) throws(BencodeError) -> (bencode: Bencode, index: Int) {
         return try parse(data, from: 0)
     }
 
-    private static func parse(_ data: Data, from index: Int) throws -> (
+    private static func parse(_ data: Data, from index: Int) throws(BencodeError) -> (
         bencode: Bencode, index: Int
     ) {
         guard data.endIndex >= index + 1 else {
@@ -92,8 +92,9 @@ extension Bencoder {
         }
     }
 
-    private static func parseString(data: Data, index: Int) throws -> (bencode: Bencode, index: Int)
-    {
+    private static func parseString(data: Data, index: Int) throws(BencodeError) -> (
+        bencode: Bencode, index: Int
+    ) {
         guard let sep = data[index...].firstIndex(of: colon) else {
             throw BencodeError.tokenNotFound(colon)
         }
@@ -107,7 +108,9 @@ extension Bencoder {
         return (.string(Data(data[start..<end])), end)
     }
 
-    private static func parseInt(data: Data, index: Int) throws -> (bencode: Bencode, index: Int) {
+    private static func parseInt(data: Data, index: Int) throws(BencodeError) -> (
+        bencode: Bencode, index: Int
+    ) {
         guard let end = data[index...].firstIndex(of: e) else {
             throw BencodeError.tokenNotFound(e)
         }
@@ -119,7 +122,9 @@ extension Bencoder {
         return (.int(int), end + 1)
     }
 
-    private static func parseList(data: Data, index: Int) throws -> (bencode: Bencode, index: Int) {
+    private static func parseList(data: Data, index: Int) throws(BencodeError) -> (
+        bencode: Bencode, index: Int
+    ) {
         var l: [Bencode] = []
         var currentIndex: Int = index
 
@@ -136,7 +141,9 @@ extension Bencoder {
         return (.list(l), currentIndex + 1)
     }
 
-    private static func parseDict(data: Data, index: Int) throws -> (bencode: Bencode, index: Int) {
+    private static func parseDict(data: Data, index: Int) throws(BencodeError) -> (
+        bencode: Bencode, index: Int
+    ) {
         var d: [Data: Bencode] = [:]
         var currentIndex: Int = index
 
