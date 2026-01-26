@@ -26,10 +26,11 @@ let package = Package(
             name: "BencodeTests",
             dependencies: ["Bencode"],
             resources: [
-                .copy("Resources/debian-13.3.0-amd64-DVD-1.iso.torrent")
+                .copy("Resources/debian-13.3.0-amd64-DVD-1.iso.torrent"),
+                .copy("Resources/Fedora-Workstation-Live-aarch64-43.torrent"),
                 //                .copy("Resources/Fedora-Budgie-Live-x86_64-43.torrent"),
                 //                .copy("Resources/Fedora-Cinnamon-Live-x86_64-43.torrent"),
-                //                .copy("Resources/Fedora-Workstation-Live-aarch64-43.torrent"),
+
                 //                .copy("Resources/ubuntu-25.10-desktop-amd64.iso.torrent"),
                 //                .copy("Resources/ubuntu-25.10-live-server-amd64.iso.torrent")
             ]

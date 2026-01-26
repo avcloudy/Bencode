@@ -1,13 +1,13 @@
 import Foundation
 
 public struct Bencoder {
-    private let zero = Character("0").asciiValue!
-    private let nine = Character("9").asciiValue!
-    private let i = Character("i").asciiValue!
-    private let l = Character("l").asciiValue!
-    private let d = Character("d").asciiValue!
-    private let e = Character("e").asciiValue!
-    private let colon = Character(":").asciiValue!
+    private static let zero = Character("0").asciiValue!
+    private static let nine = Character("9").asciiValue!
+    private static let i = Character("i").asciiValue!
+    private static let l = Character("l").asciiValue!
+    private static let d = Character("d").asciiValue!
+    private static let e = Character("e").asciiValue!
+    private static let colon = Character(":").asciiValue!
 
     /// Decode Bencode from a String
     /// - Parameter string: String fitting the Bencode specification:
@@ -17,10 +17,8 @@ public struct Bencoder {
     ///    dict: ["key": "value"] <-> "d3:key5:valuee"
     /// - Returns: Bencode enum object
     /// Preferred usage is through Bencode initialiser, so instead of Bencoder.decode(bencodedString:) use Bencode(bencodedString:)
-    public func decode(bencodedString string: String) throws -> Bencode {
-        guard let data = string.data(using: .utf8) else {
-            throw BencodeError.invalidString
-        }
+    public static func decode(bencodedString string: String) throws -> Bencode {
+        let data = Data(string.utf8)
         return try decode(data: data)
     }
 
@@ -28,7 +26,7 @@ public struct Bencoder {
     ///  - Parameter data: Data fitting the Bencode specification
     ///  - Returns: Bencode enum object
     ///  Use Bencode(data:) as for decode(bencodedString:)
-    public func decode(data: Data) throws -> Bencode {
+    public static func decode(data: Data) throws -> Bencode {
         return try parse(data).bencode
     }
 
@@ -36,7 +34,7 @@ public struct Bencoder {
     /// - Parameter url: path to .torrent file.
     /// - Returns: Bencode enum object
     /// Use Bencode(file:) as for decode(bencodedString)
-    public func decode(file url: URL) async throws -> Bencode {
+    public static func decode(file url: URL) async throws -> Bencode {
         let data = try await Task.detached(priority: .userInitiated) {
             try Data(contentsOf: url)
         }.value
@@ -47,7 +45,7 @@ public struct Bencoder {
     /// - Parameter bencode: Any Bencode enum
     /// - Returns: Data object with encoded Bencode bytes
     /// Access through bencode.encoded
-    public func encoded(bencode: Bencode) -> Data {
+    public static func encoded(bencode: Bencode) -> Data {
         switch bencode {
         case .string(let d): return Data("\(d.count):".utf8) + d
         case .int(let i): return Data("i\(i)e".utf8)
@@ -72,11 +70,11 @@ public struct Bencoder {
 
 extension Bencoder {
 
-    private func parse(_ data: Data) throws -> (bencode: Bencode, index: Int) {
+    private static func parse(_ data: Data) throws -> (bencode: Bencode, index: Int) {
         return try parse(data, from: 0)
     }
 
-    fileprivate func parse(_ data: Data, from index: Int) throws -> (
+    private static func parse(_ data: Data, from index: Int) throws -> (
         bencode: Bencode, index: Int
     ) {
         guard data.endIndex >= index + 1 else {
@@ -94,7 +92,8 @@ extension Bencoder {
         }
     }
 
-    private func parseString(data: Data, index: Int) throws -> (bencode: Bencode, index: Int) {
+    private static func parseString(data: Data, index: Int) throws -> (bencode: Bencode, index: Int)
+    {
         guard let sep = data[index...].firstIndex(of: colon) else {
             throw BencodeError.tokenNotFound(colon)
         }
@@ -108,7 +107,7 @@ extension Bencoder {
         return (.string(Data(data[start..<end])), end)
     }
 
-    private func parseInt(data: Data, index: Int) throws -> (bencode: Bencode, index: Int) {
+    private static func parseInt(data: Data, index: Int) throws -> (bencode: Bencode, index: Int) {
         guard let end = data[index...].firstIndex(of: e) else {
             throw BencodeError.tokenNotFound(e)
         }
@@ -120,23 +119,30 @@ extension Bencoder {
         return (.int(int), end + 1)
     }
 
-    private func parseList(data: Data, index: Int) throws -> (bencode: Bencode, index: Int) {
+    private static func parseList(data: Data, index: Int) throws -> (bencode: Bencode, index: Int) {
         var l: [Bencode] = []
         var currentIndex: Int = index
 
-        while data[currentIndex] != e {
+        while data.endIndex > currentIndex,
+            data[currentIndex] != e
+        {
             let result = try parse(data, from: currentIndex)
             l.append(result.bencode)
             currentIndex = result.index
         }
+        guard data.endIndex > currentIndex else {
+            throw BencodeError.indexOutOfBounds
+        }
         return (.list(l), currentIndex + 1)
     }
 
-    private func parseDict(data: Data, index: Int) throws -> (bencode: Bencode, index: Int) {
+    private static func parseDict(data: Data, index: Int) throws -> (bencode: Bencode, index: Int) {
         var d: [Data: Bencode] = [:]
         var currentIndex: Int = index
 
-        while data[currentIndex] != e {
+        while data.endIndex > currentIndex,
+            data[currentIndex] != e
+        {
             let keyResult = try parse(data, from: currentIndex)
             guard case .string(let keyData) = keyResult.bencode else {
                 throw BencodeError.badKey
@@ -144,6 +150,9 @@ extension Bencoder {
             let valueResult = try parse(data, from: keyResult.index)
             currentIndex = valueResult.index
             d[keyData] = valueResult.bencode
+        }
+        guard data.endIndex > currentIndex else {
+            throw BencodeError.indexOutOfBounds
         }
         return (.dict(d), currentIndex + 1)
     }

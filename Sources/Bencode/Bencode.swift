@@ -16,7 +16,7 @@ public enum Bencode: Equatable {
     ///    dict: ["key": "value"] <-> "d3:key5:valuee"
     /// - Returns: Bencode enum object
     init(bencodedString string: String) throws {
-        let bencode = try Bencoder().decode(bencodedString: string)
+        let bencode = try Bencoder.decode(bencodedString: string)
         self = bencode
     }
 
@@ -28,7 +28,7 @@ public enum Bencode: Equatable {
     ///    dict: ["key": "value"] <-> "d3:key5:valuee"
     /// - Returns: Bencode enum object
     init(file url: URL) async throws {
-        let bencode = try await Bencoder().decode(file: url)
+        let bencode = try await Bencoder.decode(file: url)
         self = bencode
     }
 
@@ -40,7 +40,7 @@ public enum Bencode: Equatable {
     ///    dict: ["key": "value"] <-> "d3:key5:valuee"
     /// - Returns: Bencode enum object
     init(data: Data) throws {
-        let bencode = try Bencoder().decode(data: data)
+        let bencode = try Bencoder.decode(data: data)
         self = bencode
     }
 
@@ -56,9 +56,9 @@ public enum Bencode: Equatable {
 
     // access Bencode dict by String key
     subscript(key: String) -> Bencode? {
-        guard case .dict(let d) = self,
-            let keyData = key.data(using: .utf8)
+        guard case .dict(let d) = self
         else { return nil }
+        let keyData = Data(key.utf8)
         return d[keyData]
     }
 
@@ -71,7 +71,7 @@ public enum Bencode: Equatable {
 
     // access encoded representation of Bencode object
     var encoded: Data? {
-        let bencode = Bencoder().encoded(bencode: self)
+        let bencode = Bencoder.encoded(bencode: self)
         return bencode
     }
 

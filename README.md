@@ -64,7 +64,7 @@ let bencode: Bencode? = try Bencode(bencodedString: string)
 ### Initialise a Bencode object from a stream of bytes:
 
 ```swift
-let bytes = "17:This is a string!".data(using: .utf8)
+let bytes = Data("17:This is a string!".utf8)
 let bencode: Bencode? = try Bencode(data: bytes)
 ```
 
@@ -85,13 +85,13 @@ let hash: String = infoDict.hexHashed
 ### Build manual Bencode objects
 
 ```swift
-let one = Bencode.string("One".data(using: .utf8)
+let one = Bencode.string(Data("One".utf8))
 let two = Bencode.int(2)
 let three = Bencode.list(.string(one, two))
 let dict = Bencode.dict([
-    "string".data(using: .utf8): one,
-    "int".data(using: .utf8): two
-    "list".data(using: .utf8): three
+    Data("string".utf8): one,
+    Data("int".utf8): two
+    Data("list".utf8): three
 ])
 ```
 

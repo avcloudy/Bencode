@@ -4,7 +4,7 @@ import Testing
 @testable import Bencode
 
 struct BencodeTests {
-    // MARK: Decode tests
+    // MARK: - Decode tests
     struct BencodeDecodeTestsFromString {
         @Test func decodeStringTrivial() throws {
             let testBencodedString = "1:a"
@@ -140,7 +140,37 @@ struct BencodeTests {
             #expect(decodedDict["string"] == bencodedRecursiveDict["string"])
         }
     }
-    // MARK: Encode Tests
+    // MARK: - Error Tests
+    struct BencodeErrorTests {
+        @Test func indexOutOfBounds() throws {
+            let bencodedList = "li41ei42e"
+            #expect(throws: BencodeError.indexOutOfBounds) {
+                let _ = try Bencode(bencodedString: bencodedList)
+            }
+        }
+
+        @Test func unknownToken() throws {
+            let bencodedList = "li41ek42ee"
+            #expect(throws: BencodeError.unknownToken(Character("k").asciiValue!)) {
+                let _ = try Bencode(bencodedString: bencodedList)
+            }
+        }
+
+        @Test func invalidNumber() throws {
+            let bencodedInt = "ifortytwoe"
+            #expect(throws: BencodeError.invalidNumber) {
+                let _ = try Bencode(bencodedString: bencodedInt)
+            }
+        }
+
+        @Test func badKey() throws {
+            let bencodedDict = "di42e5:value"
+            #expect(throws: BencodeError.badKey) {
+                let _ = try Bencode(bencodedString: bencodedDict)
+            }
+        }
+    }
+    // MARK: - Encode Tests
     struct BencodeEncodeFromBencodeObjects {
         @Test func encodeString() throws {
             let testBencodedString = Bencode.string("This is a simple test!".data(using: .utf8)!)
@@ -177,6 +207,7 @@ struct BencodeTests {
             #expect(dict.encoded == bencode.data(using: .utf8))
         }
     }
+    // MARK: - Torrent Read Tests
     struct BencodeTorrentReadTests {
         @Test func debianReadTest() async throws {
             guard
@@ -186,10 +217,10 @@ struct BencodeTests {
                 fatalError()
             }
             let metadata = try await Bencode(file: url)
-            let annouce = metadata["announce"]
+            let announce = metadata["announce"]
             let announceExpected = Bencode.string(
                 "http://bttracker.debian.org:6969/announce".data(using: .utf8)!)
-            #expect(annouce == announceExpected)
+            #expect(announce == announceExpected)
             let comment = metadata["comment"]
             let commentExpected = Bencode.string(
                 "Debian CD from cdimage.debian.org".data(using: .utf8)!)
@@ -224,6 +255,54 @@ struct BencodeTests {
             #expect(urlList == urlListExpected)
             let hash = info.hexHashed
             let hashExpected = "c6ee205099093bbe2dffa4e1b2794b7dae0e6046"
+            #expect(hash == hashExpected)
+        }
+
+        @Test func fedoraReadTest() async throws {
+            guard
+                let url = Bundle.module.url(
+                    forResource: "Fedora-Workstation-Live-aarch64-43", withExtension: "torrent")
+            else {
+                fatalError()
+            }
+            let metadata = try await Bencode(file: url)
+            let announce = metadata["announce"]
+            let announceExpected = Bencode.string(
+                "http://torrent.fedoraproject.org:6969/announce".data(using: .utf8)!)
+            #expect(announce == announceExpected)
+            let createdBy = metadata["created by"]
+            let createdByExpected = Bencode.string("mktorrent 1.1".data(using: .utf8)!)
+            #expect(createdBy == createdByExpected)
+            let creationDate = metadata["creation date"]
+            let creationDateExpected = Bencode.int(1_761_757_966)
+            #expect(creationDate == creationDateExpected)
+            guard let info = metadata["info"] else { fatalError() }
+            guard let files = info["files"] else { fatalError() }
+            let fileszero = files[0]
+            let filesone = files[1]
+            let fileszeroExpected = Bencode.dict([
+                "length".data(using: .utf8)!: .int(1064),
+                "path".data(using: .utf8)!: .list([
+                    .string("Fedora-Workstation-43-1.6-aarch64-CHECKSUM".data(using: .utf8)!)
+                ]),
+            ])
+            let filesoneExpected = Bencode.dict([
+                "length".data(using: .utf8)!: .int(2_566_119_424),
+                "path".data(using: .utf8)!: .list([
+                    .string("Fedora-Workstation-Live-43-1.6.aarch64.iso".data(using: .utf8)!)
+                ]),
+            ])
+            #expect(fileszero == fileszeroExpected)
+            #expect(filesone == filesoneExpected)
+            let name = info["name"]
+            let nameExpected = Bencode.string(
+                "Fedora-Workstation-Live-aarch64-43".data(using: .utf8)!)
+            #expect(name == nameExpected)
+            let pieceLength = info["piece length"]
+            let pieceLengthExpected = Bencode.int(262144)
+            #expect(pieceLength == pieceLengthExpected)
+            let hash = info.hexHashed
+            let hashExpected = "c1c7a122a6232d74abea8c49d22da752cfc7f25c"
             #expect(hash == hashExpected)
         }
     }
