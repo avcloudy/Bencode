@@ -34,7 +34,8 @@ targets: [
                 .product(name: "Bencode", package: "Bencode")
             ]
         ),
-    ```
+    ...
+```
 
 Build your package or run `swift package resolve`.
 
