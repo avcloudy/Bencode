@@ -12,6 +12,12 @@ struct BencodeTests {
             #expect(decodedString == .string("a".data(using: .utf8)!))
         }
 
+        @Test func decodeStringTrivialData() throws {
+            let testBencodedData = Data("1:a".utf8)
+            let decodedData = try Bencode(data: testBencodedData)
+            #expect(decodedData == .string(Data("a".utf8)))
+        }
+
         @Test func decodeString() throws {
             let testBencodedString = "22:This is a simple test!"
             let decodedString = try Bencode(bencodedString: testBencodedString)
