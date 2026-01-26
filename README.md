@@ -21,7 +21,8 @@ Add dependency to your Package.swift Package declaration e.g.:
 ```swift
 dependencies: [
     .package(url: "https://github.com/avcloudy/Bencode.git", from: "1.0.0")
-],```
+],
+```
 
 Add it as a target to the specific target/s:
 
@@ -33,7 +34,8 @@ targets: [
                 .product(name: "Bencode", package: "Bencode")
             ]
         ),
-    ...```
+    ...
+    ```
 
 Build your package or run `swift package resolve`.
 
