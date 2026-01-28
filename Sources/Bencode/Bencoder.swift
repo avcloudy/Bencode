@@ -17,7 +17,7 @@ public struct Bencoder {
     ///    dict: ["key": "value"] <-> "d3:key5:valuee"
     /// - Returns: Bencode enum object
     /// Preferred usage is through Bencode initialiser, so instead of Bencoder.decode(bencodedString:) use Bencode(bencodedString:)
-    public static func decode(bencodedString string: String) throws(BencodeError) -> Bencode {
+    internal static func decode(bencodedString string: String) throws(BencodeError) -> Bencode {
         let data = Data(string.utf8)
         return try decode(data: data)
     }
@@ -26,7 +26,7 @@ public struct Bencoder {
     ///  - Parameter data: Data fitting the Bencode specification
     ///  - Returns: Bencode enum object
     ///  Use Bencode(data:) as for decode(bencodedString:)
-    public static func decode(data: Data) throws(BencodeError) -> Bencode {
+    internal static func decode(data: Data) throws(BencodeError) -> Bencode {
         return try parse(data).bencode
     }
 
@@ -34,7 +34,7 @@ public struct Bencoder {
     /// - Parameter url: path to .torrent file.
     /// - Returns: Bencode enum object
     /// Use Bencode(file:) as for decode(bencodedString)
-    public static func decode(file url: URL) async throws -> Bencode {
+    internal static func decode(file url: URL) async throws -> Bencode {
         let data = try await Task.detached(priority: .userInitiated) {
             try Data(contentsOf: url)
         }.value
@@ -45,7 +45,7 @@ public struct Bencoder {
     /// - Parameter bencode: Any Bencode enum
     /// - Returns: Data object with encoded Bencode bytes
     /// Access through bencode.encoded
-    public static func encoded(bencode: Bencode) -> Data {
+    internal static func encoded(bencode: Bencode) -> Data {
         switch bencode {
         case .string(let d): return Data("\(d.count):".utf8) + d
         case .int(let i): return Data("i\(i)e".utf8)
@@ -58,7 +58,7 @@ public struct Bencoder {
                 d
                 .sorted { $0.key.lexicographicallyPrecedes($1.key) }
                 .map { (key, value) in
-                    key.encoded! + value.encoded!
+                    key.encoded + value.encoded
                 }
                 .reduce(Data(), +)
             return Data("d".utf8) + body + Data("e".utf8)

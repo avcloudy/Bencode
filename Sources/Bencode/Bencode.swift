@@ -15,7 +15,7 @@ public enum Bencode: Equatable {
     ///    list: ["one", "two", "three"] <-> "l3:one3:two5:threee"
     ///    dict: ["key": "value"] <-> "d3:key5:valuee"
     /// - Returns: Bencode enum object
-    init(bencodedString string: String) throws(BencodeError) {
+    public init(bencodedString string: String) throws(BencodeError) {
         let bencode = try Bencoder.decode(bencodedString: string)
         self = bencode
     }
@@ -27,7 +27,7 @@ public enum Bencode: Equatable {
     ///    list: ["one", "two", "three"] <-> "l3:one3:two5:threee"
     ///    dict: ["key": "value"] <-> "d3:key5:valuee"
     /// - Returns: Bencode enum object
-    init(file url: URL) async throws {
+    public init(file url: URL) async throws {
         let bencode = try await Bencoder.decode(file: url)
         self = bencode
     }
@@ -39,14 +39,14 @@ public enum Bencode: Equatable {
     ///    list: ["one", "two", "three"] <-> "l3:one3:two5:threee"
     ///    dict: ["key": "value"] <-> "d3:key5:valuee"
     /// - Returns: Bencode enum object
-    init(data: Data) throws(BencodeError) {
+    public init(data: Data) throws(BencodeError) {
         let bencode = try Bencoder.decode(data: data)
         self = bencode
     }
 
     // MARK: Bencode accessors
     // access Bencode list by Int index
-    subscript(index: Int) -> Bencode? {
+    public subscript(index: Int) -> Bencode? {
         guard case .list(let l) = self,
             index >= 0,
             index < l.count
@@ -55,7 +55,7 @@ public enum Bencode: Equatable {
     }
 
     // access Bencode dict by String key
-    subscript(key: String) -> Bencode? {
+    public subscript(key: String) -> Bencode? {
         guard case .dict(let d) = self
         else { return nil }
         let keyData = Data(key.utf8)
@@ -64,26 +64,26 @@ public enum Bencode: Equatable {
 
     // access Bencode dict by Data key - this isn't very useful for eg torrents
     // but dict keys being UInt8 value stream is technically in Bencode spec
-    subscript(key: Data) -> Bencode? {
+    public subscript(key: Data) -> Bencode? {
         guard case .dict(let d) = self else { return nil }
         return d[key]
     }
 
     // access encoded representation of Bencode object
-    var encoded: Data? {
+    public var encoded: Data {
         let bencode = Bencoder.encoded(bencode: self)
         return bencode
     }
 
     // The raw bytes of the hash
-    var hashed: Data? {
-        guard let bencode = self.encoded else { return nil }
+    public var hashed: Data? {
+        let bencode = self.encoded
         return Data(Insecure.SHA1.hash(data: bencode))
     }
 
     // The raw bytes of the hash in hex format string
-    var hexHashed: String? {
-        guard let bencode = self.encoded else { return nil }
+    public var hexHashed: String? {
+        let bencode = self.encoded
         let hexHash = Insecure.SHA1.hash(data: bencode)
             .map { String(format: "%02x", $0) }
             .joined()
@@ -93,7 +93,7 @@ public enum Bencode: Equatable {
 
 // to enable use of Data objects as key in Dict without having to make a wrapper around it
 extension Data {
-    var encoded: Data? {
+    public var encoded: Data {
         return Data("\(self.count):".utf8) + self
     }
 }
