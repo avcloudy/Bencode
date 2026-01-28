@@ -202,11 +202,9 @@ struct BencodeTests {
             let aaaron = "aaaron".data(using: .utf8)!
             let done = Bencode.string("fucked up".data(using: .utf8)!)
             let testBencodedDict = Bencode.dict([key: value, aaaron: done])
-            print(String(data: testBencodedDict.encoded!, encoding: .utf8)!)
             #expect(testBencodedDict.encoded == Data("d6:aaaron9:fucked up3:key5:valuee".utf8))
         }
 
-        // TODO: add check for construction from bencode string matches string
         @Test func encodeDictConstructionMatchString() throws {
             let bencode = "d6:aaaron9:fucked up3:key5:valuee"
             let dict = try Bencode(bencodedString: bencode)
@@ -216,12 +214,15 @@ struct BencodeTests {
     // MARK: - Torrent Read Tests
     struct BencodeTorrentReadTests {
         @Test func debianReadTest() async throws {
-            guard
-                let url = Bundle.module.url(
-                    forResource: "debian-13.3.0-amd64-DVD-1.iso", withExtension: "torrent")
-            else {
-                fatalError()
-            }
+            //            guard
+            //                let url = Bundle.module.url(
+            //                    forResource: "debian-13.3.0-amd64-DVD-1.iso", withExtension: "torrent")
+            //            else {
+            //                fatalError()
+            //            }
+            let url = try #require(
+                Bundle.module.url(
+                    forResource: "debian-13.3.0-amd64-DVD-1.iso", withExtension: "torrent"))
             let metadata = try await Bencode(file: url)
             let announce = metadata["announce"]
             let announceExpected = Bencode.string(
@@ -237,7 +238,7 @@ struct BencodeTests {
             let creationDate = metadata["creation date"]
             let creationDateExpected = Bencode.int(1_768_050_341)
             #expect(creationDate == creationDateExpected)
-            guard let info = metadata["info"] else { fatalError() }
+            let info = try #require(metadata["info"])
             let length = info["length"]
             let lengthExpected = Bencode.int(3_925_868_544)
             #expect(length == lengthExpected)
@@ -265,12 +266,9 @@ struct BencodeTests {
         }
 
         @Test func fedoraReadTest() async throws {
-            guard
-                let url = Bundle.module.url(
-                    forResource: "Fedora-Workstation-Live-aarch64-43", withExtension: "torrent")
-            else {
-                fatalError()
-            }
+            let url = try #require(
+                Bundle.module.url(
+                    forResource: "Fedora-Workstation-Live-aarch64-43", withExtension: "torrent"))
             let metadata = try await Bencode(file: url)
             let announce = metadata["announce"]
             let announceExpected = Bencode.string(
@@ -282,8 +280,8 @@ struct BencodeTests {
             let creationDate = metadata["creation date"]
             let creationDateExpected = Bencode.int(1_761_757_966)
             #expect(creationDate == creationDateExpected)
-            guard let info = metadata["info"] else { fatalError() }
-            guard let files = info["files"] else { fatalError() }
+            let info = try #require(metadata["info"])
+            let files = try #require(info["files"])
             let fileszero = files[0]
             let filesone = files[1]
             let fileszeroExpected = Bencode.dict([
