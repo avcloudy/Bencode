@@ -1,5 +1,5 @@
 # Bencode
-*version 1.0.0*
+*version 1.0.1*
 ***
 
 A Swift Bencode encoder/decoder library intended for use with native macOS torrent clients or \*nix trackers, written in async Swift 6.
@@ -20,19 +20,19 @@ Add dependency to your Package.swift Package declaration e.g.:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/avcloudy/Bencode.git", from: "1.0.0")
-],
+        .package(url: "https://github.com/avcloudy/Bencode.git", from: "1.0.0")
+    ],
 ```
 
 Add it as a target to the specific target/s:
 
 ```swift
-targets: [
+    targets: [
         .target(
-            name: "Bencode"
+            name: "swift-torrent",
             dependencies: [
                 .product(name: "Bencode", package: "Bencode")
-            ]
+            ],
         ),
     ...
 ```

@@ -35,9 +35,18 @@ public struct Bencoder {
     /// - Returns: Bencode enum object
     /// Use Bencode(file:) as for decode(bencodedString)
     internal static func decode(file url: URL) async throws -> Bencode {
-        let data = try await Task.detached(priority: .userInitiated) {
-            try Data(contentsOf: url)
-        }.value
+        let data: Data
+        if #available(macOS 13.0, iOS 16.0, *) {
+                // Darwin Foundation has async FileHandle
+            let handle = try FileHandle(forReadingFrom: url)
+            data = try await handle.readToEnd() ?? Data()
+        } else {
+                // Older OSes or corelibs Foundation: synchronous fallback
+            data = try await Task(priority: .userInitiated) {
+                try Data(contentsOf: url)
+            }.value
+        }
+        
         return try decode(data: data)
     }
 
